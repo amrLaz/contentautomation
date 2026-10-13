@@ -49,7 +49,7 @@ Titre : « Bête du Gévaudan : 3 questions, 1 mystère » | #quiz #france #hist
 | 7 | Dès mille huit cent neuf, sur rendez-vous. Mais on n'en visite aujourd'hui qu'une petite partie. | dim tunnel visitors | Réponse : 1809 |
 | 8 | Ton score ? Dis-le en commentaire. Tu descendrais ? | dark staircase down | Ton score ? |
 
-~107 mots. Sources : visitparisregion, pariszigzag, jds.fr (recherche du 2026-10-13). Le chiffre « environ six millions » est attribué dans le texte. Réouverture 2026 NON utilisée (non vérifiée).
+~105 mots. Sources : visitparisregion, pariszigzag, jds.fr (recherche du 2026-10-13). Le chiffre « environ six millions » est attribué dans le texte. Réouverture 2026 NON utilisée (non vérifiée).
 Titre : « Catacombes de Paris : 3 questions » | #quiz #paris #catacombes #histoire
 
 ## Script 3 : Alignements de Carnac
@@ -66,7 +66,7 @@ Titre : « Catacombes de Paris : 3 questions » | #quiz #paris #catacombes #hist
 | 7 | Onze lignes, pour plus de mille pierres. [à vérifier] | rows of menhirs | Réponse : 11 lignes |
 | 8 | Ton score ? Dis-le en commentaire. | stones at dusk | Ton score ? |
 
-~96 mots. ⚠ Source du niveau 3 : Vikidia (wiki), à confirmer auprès d'une source archéologique ou de morbihan.com avant publication.
+~89 mots. ⚠ Source du niveau 3 : Vikidia (wiki), à confirmer auprès d'une source archéologique ou de morbihan.com avant publication.
 Titre : « Carnac : 3 questions sur 3 000 pierres » | #quiz #bretagne #carnac #histoire
 
 ## Auto-critique (éditeur sceptique, grille scorecard.md, /45)
