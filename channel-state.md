@@ -7,6 +7,7 @@
 - Cible : francophones curieux, 18-45 ans, qui commentent leur score
 - Promesse : « Tu te crois fort en France ? Teste-toi en 30 secondes. »
 - Plateformes / langue : YouTube Shorts + Instagram Reels / français
+- Chaîne YouTube : @thisisit9182 (non vérifiée depuis cet environnement, YouTube inaccessible)
 
 ## Voix de marque
 - Ton : direct, complice, sans prétention (à confirmer avec l'utilisateur)
@@ -40,7 +41,7 @@
 ## État du lot 1
 - Gévaudan : prêt (36/45), `quizzes/gevaudan.json` rendu OK
 - Catacombes : rendu OK, 33/45 sous le seuil, à améliorer (hook chiffré, bouclage)
-- Carnac : rendu bloqué par `[à vérifier]` (niveau 3 non confirmé)
+- Carnac : boucle 2 faite, 34/45, rendu OK, sources non officielles
 - Rien n'est publié ni programmé
 
 ## Hypothèses à tester au prochain lot

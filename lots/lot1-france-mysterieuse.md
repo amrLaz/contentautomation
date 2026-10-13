@@ -63,10 +63,10 @@ Titre : « Catacombes de Paris : 3 questions » | #quiz #paris #catacombes #hist
 | 4 | Niveau deux. Quand ? Il y a cinq cents ans, deux mille ans, ou plus de cinq mille ? | ancient stone close up | Niv. 2 : quand ? |
 | 5 | Entre cinq mille et sept mille ans, au Néolithique. | prehistoric landscape | Réponse : Néolithique |
 | 6 | Niveau trois. Au Ménec, combien de lignes de pierres ? Trois, onze, ou trente ? | aerial stone rows | Niv. 3 : combien de lignes ? |
-| 7 | Onze lignes, pour plus de mille pierres. [à vérifier] | rows of menhirs | Réponse : 11 lignes |
+| 7 | Onze lignes, environ onze cents pierres selon les sources. La plus haute fait environ quatre mètres. | rows of menhirs | Réponse : 11 lignes |
 | 8 | Ton score ? Dis-le en commentaire. | stones at dusk | Ton score ? |
 
-~89 mots. ⚠ Source du niveau 3 : Vikidia (wiki), à confirmer auprès d'une source archéologique ou de morbihan.com avant publication.
+~99 mots. Boucle 2 : « 11 lignes » confirmé par plusieurs sites (Lonely Planet FR, Isle of Albion, Visorando, Vikidia). Le nombre de pierres varie (1 050 à 1 170) donc « environ ». Aucune source officielle trouvée : publiable avec cette formulation prudente, à confirmer si possible.
 Titre : « Carnac : 3 questions sur 3 000 pierres » | #quiz #bretagne #carnac #histoire
 
 ## Auto-critique (éditeur sceptique, grille scorecard.md, /45)
@@ -86,7 +86,7 @@ Notes que j'ai attribuées moi-même : ce n'est pas une mesure indépendante.
 | **Total** | **36/45 (80 %)** | **33/45 (73 %)** | **33/45 (73 %)** |
 
 Preuves principales : S1 hook = « personne ne sait vraiment ce que c'était » (mystère immédiat) ; la boucle reprend « c'était quoi, cette bête ? ». Visuels = 3 partout : mots-clés génériques (« dark forest fog ») et rien ne garantit des images libres de droits adaptées ; point faible commun. S2 : hook « un monde sous Paris » sans chiffre fort, fin sans bouclage. S3 : « Valeur unique » faible, anecdote absente hors dates.
-Portes : S1 OK (sources croisées, chiffres attribués). S2 OK sous réserve de relire les sources officielles. **S3 : porte Exactitude ouverte** (niveau 3 non confirmé).
+Portes : S1 OK (sources croisées, chiffres attribués). S2 OK sous réserve de relire les sources officielles. S3 : porte Exactitude rouverte puis refermée en boucle 2 (formulation prudente, sources multiples non officielles).
 
 ### Ce que la critique a changé (boucle 1)
 - S1 : « cent » remplacé par « environ cent, selon les sources, de 80 à 124 » car les sources divergent ; ajout de « des doutes subsistent » (la fin de la Bête n'est pas établie).
@@ -98,3 +98,8 @@ Portes : S1 OK (sources croisées, chiffres attribués). S2 OK sous réserve de 
 - Aucune donnée de vues ou de demande sur le public visé : le lot sert justement à tester.
 - Visuels : à valider image par image pour les droits (Wikimedia Commons : noter licence et auteur).
 - Production : rendu quiz (question, options, chrono, révélation) à construire, MoneyPrinterTurbo seul ne suffit probablement pas.
+
+## Boucle 2 (2026-10-13)
+- S3 Carnac : ajout de l'anecdote « la plus haute fait environ 4 mètres » (Valeur unique 3 -> 4), `[à vérifier]` retiré. Score estimé **34/45 (76 %)** : toujours sous le seuil de 80 %, livré avec avertissement.
+- S2 Catacombes : inchangé (33/45). Pas de correction honnête trouvée pour le hook sans source supplémentaire ; reste sous le seuil.
+- Seul S1 atteint le seuil : c'est celui à publier en premier.
