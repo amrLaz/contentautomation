@@ -1,0 +1,17 @@
+{
+  "brand": "Quiz France",
+  "hook": "Trois mille pierres dressées il y a des milliers d'années. Tu sais où ?",
+  "questions": [
+    {"level": 1, "question": "Dans quel département ?",
+     "options": ["Morbihan", "Finistère", "Calvados"], "answer": 0,
+     "answer_note": "Le Morbihan, en Bretagne."},
+    {"level": 2, "question": "Quand ont-elles été dressées ?",
+     "options": ["Il y a 500 ans", "Il y a 2 000 ans", "Plus de 5 000 ans"], "answer": 2,
+     "answer_note": "Entre 5 000 et 7 000 ans, au Néolithique."},
+    {"level": 3, "question": "Au Ménec, combien de lignes de pierres ?",
+     "options": ["3", "11", "30"], "answer": 1,
+     "answer_note": "11 lignes, pour plus de mille pierres. [à vérifier]"}
+  ],
+  "cta": "Ton score ? Dis-le en commentaire.",
+  "sources": "morbihan.com, Vikidia (niveau 3 non confirmé)"
+}

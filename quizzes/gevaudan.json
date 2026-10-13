@@ -1,0 +1,17 @@
+{
+  "brand": "Quiz France",
+  "hook": "Une bête a tué une centaine de personnes en France. Et personne ne sait vraiment ce que c'était.",
+  "questions": [
+    {"level": 1, "question": "Combien d'années a duré la terreur ?",
+     "options": ["3 ans", "10 ans"], "answer": 0,
+     "answer_note": "3 ans : de juin 1764 à juin 1767."},
+    {"level": 2, "question": "Combien de victimes, environ ?",
+     "options": ["10", "100", "1 000"], "answer": 1,
+     "answer_note": "Environ 100, selon les sources (de 80 à 124)."},
+    {"level": 3, "question": "Qui a abattu l'animal le 19 juin 1767 ?",
+     "options": ["Le marquis d'Apcher", "Jean Chastel"], "answer": 1,
+     "answer_note": "Jean Chastel, chasseur local. Des doutes subsistent : était-ce la Bête ?"}
+  ],
+  "cta": "Ton score ? Dis-le en commentaire. Pour toi, c'était quoi, cette bête ?",
+  "sources": "History Today, La Libre, History.com (recherche du 2026-10-13)"
+}

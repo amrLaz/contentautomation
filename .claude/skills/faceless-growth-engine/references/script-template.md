@@ -28,3 +28,6 @@ Les noms exacts des champs de l'API peuvent changer selon la version : vérifie-
 - Premier mot utile dès la première seconde : pas d'introduction.
 - Les mots-clés visuels décrivent ce qu'on VOIT à cet instant, pas le concept abstrait.
 - Écris pour l'oreille : lis mentalement à voix haute, supprime ce qui sonne écrit.
+
+## Variante quiz (rendu local, sans MoneyPrinterTurbo)
+Pour une chaîne de quiz, MoneyPrinterTurbo ne convient pas (narration sur stock, pas de gabarit question/options/chrono). Dans le dépôt `contentautomation`, utilise `tools/render_quiz.py` avec un fichier `quizzes/<sujet>.json` (accroche, questions à 2-4 options, réponse, note de réponse, CTA). Le rendu est un Short 9:16 muet d'environ 33 s, lisible sans le son. Il refuse tout quiz contenant `[à vérifier]` (porte Exactitude) ou une option trop longue. La voix off est une étape séparée, optionnelle.

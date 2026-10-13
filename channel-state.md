@@ -10,7 +10,7 @@
 
 ## Voix de marque
 - Ton : direct, complice, sans prétention (à confirmer avec l'utilisateur)
-- Voix de synthèse / réglages MoneyPrinterTurbo : à définir (rien d'installé). Limite connue : l'outil fait de la narration sur stock, pas de gabarit quiz (question, options, chrono) : à vérifier / prévoir un autre montage
+- Voix de synthèse / réglages MoneyPrinterTurbo : à définir (rien d'installé). Rendu quiz : `tools/render_quiz.py` (Pillow + ffmpeg, muet, 9:16, ~33 s) à partir de `quizzes/*.json`. MoneyPrinterTurbo écarté pour ce format. Voix off : pas encore choisie (aucun TTS installé ici)
 - Style visuel / sous-titres : lisible sans le son, question et options en texte à l'écran
 
 ## Critères de décision du lot test (valeurs de départ, hypothèses arbitraires)
@@ -36,6 +36,12 @@
 
 ## Idées en réserve
 - (à remplir en Phase 3)
+
+## État du lot 1
+- Gévaudan : prêt (36/45), `quizzes/gevaudan.json` rendu OK
+- Catacombes : rendu OK, 33/45 sous le seuil, à améliorer (hook chiffré, bouclage)
+- Carnac : rendu bloqué par `[à vérifier]` (niveau 3 non confirmé)
+- Rien n'est publié ni programmé
 
 ## Hypothèses à tester au prochain lot
 - Le format « échelle de difficulté » retient mieux qu'un quiz à une seule question

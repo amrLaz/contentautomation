@@ -1,0 +1,17 @@
+{
+  "brand": "Quiz France",
+  "hook": "Il y a un monde sous Paris. Et il est rempli de morts.",
+  "questions": [
+    {"level": 1, "question": "À quelle profondeur ?",
+     "options": ["2 mètres", "20 mètres", "200 mètres"], "answer": 1,
+     "answer_note": "Environ 20 mètres sous terre."},
+    {"level": 2, "question": "Combien de Parisiens reposent là ?",
+     "options": ["60 000", "600 000", "6 millions"], "answer": 2,
+     "answer_note": "Environ 6 millions, selon les fiches du tourisme parisien."},
+    {"level": 3, "question": "En quelle année ouvertes au public ?",
+     "options": ["1789", "1809", "1859"], "answer": 1,
+     "answer_note": "Dès 1809, sur rendez-vous. On n'en visite aujourd'hui qu'une petite partie."}
+  ],
+  "cta": "Ton score ? Dis-le en commentaire. Tu descendrais ?",
+  "sources": "visitparisregion, pariszigzag, jds.fr (recherche du 2026-10-13)"
+}
