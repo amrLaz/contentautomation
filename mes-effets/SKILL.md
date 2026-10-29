@@ -102,6 +102,9 @@ One name that plays several effects one after the other inside the time window y
 
 Example: `{"fx": "intro", "start": 0, "end": 4, "text": "CLAUDE"}`
 
+## Formats
+Add `--format 1:1` or `--format 16:9` (or `9:16`) to render, for another platform. The video is fitted in the middle over a blurred copy of itself, so no effect gets cut. Video output only (not `--still`).
+
 ## Warnings
 `fx.py` fixes two title effects that overlap in time by starting the later one when the earlier one ends (it prints a `Note:` saying so; `--no-auto-fix` only warns instead), and when the source video is under 720p. Pass them on to the user in plain words and offer the fix: play the effects one after the other, or use a sharper source video.
 

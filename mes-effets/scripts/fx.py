@@ -2197,6 +2197,18 @@ def resolve_overlaps(plan, auto=True):
                       'Play them one after the other.', flush=True)
 
 
+def reframe(path, fmt, long_side):
+    """Fit the finished video into 9:16, 1:1 or 16:9 without cutting anything: the video sits in the middle over a blurred copy of itself."""
+    rw, rh = {'9:16': (9, 16), '1:1': (1, 1), '16:9': (16, 9)}[fmt]
+    k = long_side / max(rw, rh); W, H = int(rw * k) // 2 * 2, int(rh * k) // 2 * 2
+    tmp = path + '.reframe.mp4'
+    vf = (f'[0:v]split[a][b];[a]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=30:3,eq=brightness=-0.08[bg];'
+          f'[b]scale={W}:{H}:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[v]')
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', path, '-filter_complex', vf, '-map', '[v]', '-map', '0:a?', '-c:v', 'libx264', '-crf', '17',
+                    '-preset', 'medium', '-c:a', 'copy', '-movflags', '+faststart', tmp], check=True)
+    os.replace(tmp, path)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('args', nargs='*', help='[effect] input.mp4 output.mp4')
@@ -2205,6 +2217,7 @@ def main():
     ap.add_argument('--still', help='comma-separated seconds: save PNG check frames instead of a video')
     ap.add_argument('--width', type=int, default=1080, help='short side of the output (1080 default, 2160 for 4K)')
     ap.add_argument('--no-auto-fix', action='store_true', help='only warn when two titles overlap, keep the timing as written')
+    ap.add_argument('--format', choices=['9:16', '1:1', '16:9'], help='fit the finished video into this shape over a blurred background (video output only)')
     ap.add_argument('--list', action='store_true')
     a = ap.parse_args()
     if a.list:
@@ -2279,7 +2292,10 @@ def main():
         else:
             enc.stdin.write(frame.tobytes())
             if i % int(fps * 5) == 0: print(f'  {t:5.1f}s / {dur:.1f}s', flush=True)
-    if enc: enc.stdin.close(); enc.wait(); print('Done:', dst)
+    if enc:
+        enc.stdin.close(); enc.wait()
+        if a.format: reframe(dst, a.format, a.width * 16 // 9)
+        print('Done:', dst)
 
 
 if __name__ == '__main__':
