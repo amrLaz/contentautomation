@@ -1,0 +1,5 @@
+{"effects":[
+ {"fx":"slow-push","start":0.0,"end":2.3,"zoom":1.35},
+ {"fx":"reject-stamp","start":1.0,"end":2.2,"text":"APPROVED","color":"#22c55e"},
+ {"fx":"led-sign","start":2.3,"end":4.04,"text":"LOOK"}
+]}
