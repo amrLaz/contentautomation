@@ -33,7 +33,7 @@ ALIASES = {'the-noise': 'noise', 'the-lineup': 'lineup', 'bill': 'the-bill', 'to
            'liquid-glass': 'liquid-glass-graph', 'glass-graph': 'liquid-glass-graph', 'carousel': 'carousel-spin', 'match': 'match-cut',
            'toggles': 'apple-toggles', 'led': 'led-sign', 'push': 'slow-push', 'push-in': 'slow-push',
            'ots': 'over-the-shoulder-zoom', 'shoulder-zoom': 'over-the-shoulder-zoom', 'corner-zoom': 'over-the-shoulder-zoom',
-           'subtitles': 'captions', 'caption': 'captions', 'sous-titres': 'captions', 'imessage': 'messages', 'texts': 'messages', 'notifications': 'messages', 'grid': 'place-in-grid', 'profile-grid': 'place-in-grid'}
+           'subtitles': 'captions', 'caption': 'captions', 'sous-titres': 'captions', 'bars': 'bar-chart', 'chart': 'bar-chart', 'imessage': 'messages', 'texts': 'messages', 'notifications': 'messages', 'grid': 'place-in-grid', 'profile-grid': 'place-in-grid'}
 LOOK_NAMES = {'glitter-spotlight': ('spotlight', 'sparkle'), 'glitter': ('spotlight', 'sparkle')}  # a named look of another effect
 CARD_FX = ('noise', 'orbit', 'carousel-spin', 'place-in-grid', 'check-pills', 'profile-wall', 'phone-fan', 'broll-split', 'timeline')
 
@@ -1575,6 +1575,35 @@ def fx_liquid_glass_graph(c, e):
         d.line([(x0, yy), (x1, yy)], fill=(255, 255, 255, 40), width=max(1, int(gw * 0.002)))
     im.alpha_composite(lay)
     place(c, shadowed(im, max(10, W // 70), W // 90, 90), cx, cy, alpha=al, guard=0.75)  # tighter face guard so the label and number stay readable
+
+
+@effect('bar-chart', 'a glass card with labelled bars: each bar grows and its number counts up when it is said')
+def fx_bar_chart(c, e):
+    # bars = "Label:value@seconds|Label:value@seconds", the seconds being when the bar appears in the video
+    items = []
+    for part in str(e.o.get('bars', 'A:3@0|B:5@1')).split('|'):
+        lab, rest = part.rsplit(':', 1); val, _, at = rest.partition('@')
+        items.append((lab.strip(), float(val.replace(',', '')), float(at) if at else e.start))
+    q = ease_out(c.lt / 0.4); al = fade(c, e) * clamp(c.lt / 0.12)
+    if al <= 0: return
+    W = c.W; cw, ch = int(W * 0.8), int(W * 0.38); sc = 0.9 + 0.1 * q  # a low card, so it starts under your chin
+    cx = W / 2; cy = min(c.H - ch * 0.53, c.fy + c.fw * 2.7) + (1 - q) * W * 0.08
+    gw, gh = int(cw * sc), int(ch * sc)
+    im = glass(c, gw, gh, gh * 0.12, cx, cy, amt=0.16, blur=max(10, W // 30), dark=0.35)
+    lay = Image.new('RGBA', (gw, gh), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); pad = gw * 0.07
+    d.text((pad, pad * 0.7), e.o.get('text', '').upper(), font=font('mono', gw * 0.04), fill=(255, 255, 255, 200))
+    green = rgb(e.o.get('color'), (52, 211, 110)); n = len(items); mx = max(v for _, v, _ in items)
+    top, base = gh * 0.36, gh * 0.78; slot = (gw - 2 * pad) / n; bw = slot * 0.62
+    newest = max((i for i, it in enumerate(items) if it[2] <= c.t), default=-1)
+    for i, (lab, v, at) in enumerate(items):
+        x = pad + slot * i + (slot - bw) / 2; k = ease_out((c.t - at) / 0.55)
+        d.text((x + bw / 2, base + gh * 0.04), lab, font=font('uib', min(gw * 0.05, bw * 0.3)), fill=(255, 255, 255, 230), anchor='ma')
+        if k <= 0: continue
+        hgt = (base - top) * v / mx * k
+        d.rounded_rectangle([x, base - hgt, x + bw, base], int(bw * 0.12), fill=(green + (255,)) if i == newest else (255, 255, 255, 160))
+        d.text((x + bw / 2, base - hgt - gh * 0.02), f'{v * k:,.0f}', font=font('uib', min(gw * 0.075, bw * 0.4)), fill=(255, 255, 255, 255), anchor='md')
+    im.alpha_composite(lay)
+    place(c, shadowed(im, max(10, W // 70), W // 90, 90), cx, cy, alpha=al, guard=0.75)
 
 
 @effect('carousel-spin', 'your reels spin around you in a 3D carousel, then slow to a stop')

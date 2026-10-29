@@ -105,6 +105,11 @@ When the person talks about numbers, turn them into animated graphs:
 5. Show the plan in plain words before rendering ("I found 2 stats: 50K to 100K followers at 3.4 s, 100% growth at 9.4 s. Right?"), because a wrong number on screen is worse than none.
 Keep a gap between two graphs so they do not overlap.
 
+## Bar chart (effect 47)
+`bar-chart` is a glass card under the chin with labelled bars. Each bar grows, and its number counts up, at the moment it is said. Option `bars` = `Label:value@seconds|Label:value@seconds` (seconds = when the bar appears in the video), `text` (small title, keep it short), `color`. Use it for 2 to 4 values said one after the other ("2,000 Jews, 1,000 Muslims, 4,000 Christians"). Alias: `bars`, `chart`.
+Example: `{"fx": "bar-chart", "start": 1.2, "end": 11.5, "text": "In my city", "bars": "Jews:2000@1.4|Muslims:1000@4.9|Christians:4000@8.7"}`
+Check that the numbers add up before drawing them. If a spoken percentage does not match the spoken figures, do not draw it: tell the person and ask which one is right.
+
 ## Captions (effect 46)
 `captions` writes what the person says at the bottom of the frame, word by word, the word being said lit in yellow. It needs no text: it transcribes the video by itself the first time (this saves `<video>.words.json` next to the video, with each word and its time). Options: `color` (hex, highlight), `y` (0 to 1, default 0.72), `max_words` (per line, default 4). Aliases: `captions`, `subtitles`, `caption`.
 The transcription makes mistakes. Before the final render, read `<video>.words.json` back to the user, fix any wrong word in its `w` fields, then render.
