@@ -5,6 +5,7 @@ usage: python words.py input.mp4            -> prints "12.34  word" lines and sa
 Uses faster-whisper (installed into the skill's .venv on first run). On a Mac with mlx-whisper installed, that is used instead.
 """
 import json, os, subprocess, sys
+import numpy as np
 
 src = sys.argv[1]
 out = os.path.splitext(src)[0] + '.words.json'
@@ -21,7 +22,10 @@ except ImportError:
         subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', 'faster-whisper'], check=True)
         from faster_whisper import WhisperModel
     model = WhisperModel(os.environ.get('WHISPER_MODEL', 'base'), device='cpu', compute_type='int8')
-    segs, _ = model.transcribe(src, word_timestamps=True, vad_filter=True)
+    # Decode with ffmpeg ourselves (16 kHz mono) rather than faster-whisper's own decoder, which breaks with some versions of PyAV.
+    pcm = subprocess.run(['ffmpeg', '-v', 'error', '-i', src, '-vn', '-ac', '1', '-ar', '16000', '-f', 'f32le', '-'], capture_output=True, check=True).stdout
+    audio = np.frombuffer(pcm, np.float32)
+    segs, _ = model.transcribe(audio, word_timestamps=True, vad_filter=True)
     words = [{'w': w.word.strip(), 's': round(w.start, 2), 'e': round(w.end, 2)} for s in segs for w in (s.words or [])]
 
 json.dump(words, open(out, 'w'), indent=0)
