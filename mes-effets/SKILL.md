@@ -96,6 +96,15 @@ A single effect needs no plan: `.venv/bin/python scripts/fx.py orbit <video> <ou
 
 Aliases work too: `bill`, `to-do`, `follow`, `stamp`, `countdown`, `cover`, `rain`, `pause`.
 
+## Stats from speech
+When the person talks about numbers, turn them into animated graphs:
+1. Run `words.py` and read the transcript. Whisper may split a number over several words (`50`, `,000`) or write it in letters; put it back together.
+2. Find each stat: the number(s), what it is about, and when it is said (the first word of it to the last, plus about a second).
+3. Pick the graph: a number that grows from A to B or a percentage -> `liquid-glass-graph` (`text` = the label, `from`, `to`, e.g. `50K` to `100K`); two numbers to compare -> `over-the-shoulder-zoom`; a few figures at once -> `liquid-glass-graph` with `look=bento`.
+4. Never invent a start value. If the person gives only the end ("100% growth"), ask what to use or count up from 0.
+5. Show the plan in plain words before rendering ("I found 2 stats: 50K to 100K followers at 3.4 s, 100% growth at 9.4 s. Right?"), because a wrong number on screen is worse than none.
+Keep a gap between two graphs so they do not overlap.
+
 ## Captions (effect 46)
 `captions` writes what the person says at the bottom of the frame, word by word, the word being said lit in yellow. It needs no text: it transcribes the video by itself the first time (this saves `<video>.words.json` next to the video, with each word and its time). Options: `color` (hex, highlight), `y` (0 to 1, default 0.72), `max_words` (per line, default 4). Aliases: `captions`, `subtitles`, `caption`.
 The transcription makes mistakes. Before the final render, read `<video>.words.json` back to the user, fix any wrong word in its `w` fields, then render.

@@ -129,7 +129,8 @@ def comp(c, layer, x, y, alpha=1.0, behind=False, guard=False):
     if behind: a = a * (1 - m)
     elif guard:
         yy, xx = np.ogrid[y0:y1, x0:x1]
-        e = ((xx - c.fx) / (c.fw * 0.95)) ** 2 + ((yy - c.fy) / (c.fw * 1.35)) ** 2
+        gs = guard if isinstance(guard, float) else 1.0  # a float shrinks the protected zone around the face
+        e = ((xx - c.fx) / (c.fw * 0.95 * gs)) ** 2 + ((yy - c.fy) / (c.fw * 1.35 * gs)) ** 2
         a = a * (1 - np.clip((1.2 - e) / 0.3, 0, 1)[..., None] * m)
     dst = c.img[y0:y1, x0:x1]
     dst[:] = dst * (1 - a) + L[..., :3] * a
@@ -1542,7 +1543,7 @@ def fx_liquid_glass_graph(c, e):
     q = ease_out(c.lt / 0.4); al = fade(c, e) * clamp(c.lt / 0.12)
     if al <= 0: return
     W = c.W; cw, ch = int(W * 0.74), int(W * 0.46); sc = 0.88 + 0.12 * q
-    cx = W / 2; cy = min(c.H - ch * 0.62, c.fy + c.fw * 2.7) + (1 - q) * W * 0.08
+    cx = W / 2; cy = min(c.H - ch * 0.53, c.fy + c.fw * 2.7) + (1 - q) * W * 0.08
     gw, gh = int(cw * sc), int(ch * sc)
     im = glass(c, gw, gh, gh * 0.12, cx, cy, amt=0.16, blur=max(10, W // 30), dark=0.12)
     hi = cached(e, ('hi', gw, gh), lambda: Image.fromarray(np.dstack([np.full((gh, gw, 3), 255, np.uint8),
@@ -1573,7 +1574,7 @@ def fx_liquid_glass_graph(c, e):
         yy = y0 - (y0 - y1) * j / 3.4
         d.line([(x0, yy), (x1, yy)], fill=(255, 255, 255, 40), width=max(1, int(gw * 0.002)))
     im.alpha_composite(lay)
-    place(c, shadowed(im, max(10, W // 70), W // 90, 90), cx, cy, alpha=al, guard=True)
+    place(c, shadowed(im, max(10, W // 70), W // 90, 90), cx, cy, alpha=al, guard=0.75)  # tighter face guard so the label and number stay readable
 
 
 @effect('carousel-spin', 'your reels spin around you in a 3D carousel, then slow to a stop')
