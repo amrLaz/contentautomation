@@ -103,7 +103,7 @@ One name that plays several effects one after the other inside the time window y
 Example: `{"fx": "intro", "start": 0, "end": 4, "text": "CLAUDE"}`
 
 ## Warnings
-`fx.py` prints a warning (it does not stop) when two title effects overlap in time, and when the source video is under 720p. Pass them on to the user in plain words and offer the fix: play the effects one after the other, or use a sharper source video.
+`fx.py` fixes two title effects that overlap in time by starting the later one when the earlier one ends (it prints a `Note:` saying so; `--no-auto-fix` only warns instead), and when the source video is under 720p. Pass them on to the user in plain words and offer the fix: play the effects one after the other, or use a sharper source video.
 
 ## Rules
 - Never cover the face. Everything either goes behind the person or avoids the face by itself; if a check frame still shows text over the face, move it (`x`, `y`) or shorten the text.

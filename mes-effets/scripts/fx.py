@@ -2181,10 +2181,18 @@ def expand_combos(plan):
     return out
 
 
-def warn_overlaps(plan):
+def resolve_overlaps(plan, auto=True):
+    """Two title effects at once collide. Play them one after the other: the later one starts when the earlier one ends,
+    as long as at least MIN_FX seconds of it remain; otherwise leave the timing alone and warn."""
+    MIN_FX = 0.6
     for i, a in enumerate(plan):
         for b in plan[i + 1:]:
-            if a['fx'] in TITLE_FX and b['fx'] in TITLE_FX and a['start'] < b['end'] and b['start'] < a['end']:
+            if not (a['fx'] in TITLE_FX and b['fx'] in TITLE_FX and a['start'] < b['end'] and b['start'] < a['end']): continue
+            first, second = (a, b) if a['start'] <= b['start'] else (b, a)
+            if auto and second['end'] - first['end'] >= MIN_FX:
+                print(f"Note: '{second['fx']}' now starts at {first['end']:.1f}s, when '{first['fx']}' ends, so their titles do not collide.", flush=True)
+                second['start'] = first['end']
+            else:
                 print(f"Warning: '{a['fx']}' and '{b['fx']}' overlap in time and both write a title near the top, so their text may collide. "
                       'Play them one after the other.', flush=True)
 
@@ -2196,6 +2204,7 @@ def main():
     ap.add_argument('--text'); ap.add_argument('--images'); ap.add_argument('--opt', action='append', default=[], help='key=value')
     ap.add_argument('--still', help='comma-separated seconds: save PNG check frames instead of a video')
     ap.add_argument('--width', type=int, default=1080, help='short side of the output (1080 default, 2160 for 4K)')
+    ap.add_argument('--no-auto-fix', action='store_true', help='only warn when two titles overlap, keep the timing as written')
     ap.add_argument('--list', action='store_true')
     a = ap.parse_args()
     if a.list:
@@ -2216,7 +2225,7 @@ def main():
         d['fx'] = ALIASES.get(d['fx'].lower().lstrip('/'), d['fx'].lower().lstrip('/'))
         if d['fx'] in LOOK_NAMES: d['fx'], look = LOOK_NAMES[d['fx']]; d.setdefault('look', look)
         if d['fx'] not in EFFECTS: sys.exit(f"Unknown effect '{d['fx']}'. Run --list to see all {len(EFFECTS)}.")
-    warn_overlaps(plan)
+    resolve_overlaps(plan, not a.no_auto_fix)
     fr, fps, dur, sw, sh = probe(src)
     if min(sw, sh) < 720: print(f'Warning: the video is only {sw}x{sh}, so the output will look soft. A 1080p source looks much better.', flush=True)
     for d in plan: d['end'] = min(float(d['end']), dur)
