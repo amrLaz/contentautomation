@@ -110,6 +110,10 @@ Keep a gap between two graphs so they do not overlap.
 Example: `{"fx": "bar-chart", "start": 1.2, "end": 11.5, "text": "In my city", "bars": "Jews:2000@1.4|Muslims:1000@4.9|Christians:4000@8.7"}`
 Check that the numbers add up before drawing them. If a spoken percentage does not match the spoken figures, do not draw it: tell the person and ask which one is right.
 
+## Percent ring (effect 48)
+`percent-ring` is a small glass card under the chin with a ring that fills up while the number counts up. Options: `value` (e.g. `40%`; or a plain number with `of` = the total it is out of), `text` (label under the number), `color`. Use it when a single percentage is said. Aliases: `ring`, `donut`, `percent`.
+Example: `{"fx": "percent-ring", "start": 14.0, "end": 17.6, "text": "Muslims", "value": "40%"}`
+
 ## Captions (effect 46)
 `captions` writes what the person says at the bottom of the frame, word by word, the word being said lit in yellow. It needs no text: it transcribes the video by itself the first time (this saves `<video>.words.json` next to the video, with each word and its time). Options: `color` (hex, highlight), `y` (0 to 1, default 0.72), `max_words` (per line, default 4). Aliases: `captions`, `subtitles`, `caption`.
 The transcription makes mistakes. Before the final render, read `<video>.words.json` back to the user, fix any wrong word in its `w` fields, then render.

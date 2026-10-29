@@ -33,7 +33,7 @@ ALIASES = {'the-noise': 'noise', 'the-lineup': 'lineup', 'bill': 'the-bill', 'to
            'liquid-glass': 'liquid-glass-graph', 'glass-graph': 'liquid-glass-graph', 'carousel': 'carousel-spin', 'match': 'match-cut',
            'toggles': 'apple-toggles', 'led': 'led-sign', 'push': 'slow-push', 'push-in': 'slow-push',
            'ots': 'over-the-shoulder-zoom', 'shoulder-zoom': 'over-the-shoulder-zoom', 'corner-zoom': 'over-the-shoulder-zoom',
-           'subtitles': 'captions', 'caption': 'captions', 'sous-titres': 'captions', 'bars': 'bar-chart', 'chart': 'bar-chart', 'imessage': 'messages', 'texts': 'messages', 'notifications': 'messages', 'grid': 'place-in-grid', 'profile-grid': 'place-in-grid'}
+           'subtitles': 'captions', 'caption': 'captions', 'sous-titres': 'captions', 'ring': 'percent-ring', 'donut': 'percent-ring', 'percent': 'percent-ring', 'bars': 'bar-chart', 'chart': 'bar-chart', 'imessage': 'messages', 'texts': 'messages', 'notifications': 'messages', 'grid': 'place-in-grid', 'profile-grid': 'place-in-grid'}
 LOOK_NAMES = {'glitter-spotlight': ('spotlight', 'sparkle'), 'glitter': ('spotlight', 'sparkle')}  # a named look of another effect
 CARD_FX = ('noise', 'orbit', 'carousel-spin', 'place-in-grid', 'check-pills', 'profile-wall', 'phone-fan', 'broll-split', 'timeline')
 
@@ -1604,6 +1604,22 @@ def fx_bar_chart(c, e):
         d.text((x + bw / 2, base - hgt - gh * 0.02), f'{v * k:,.0f}', font=font('uib', min(gw * 0.075, bw * 0.4)), fill=(255, 255, 255, 255), anchor='md')
     im.alpha_composite(lay)
     place(c, shadowed(im, max(10, W // 70), W // 90, 90), cx, cy, alpha=al, guard=0.75)
+
+
+@effect('percent-ring', 'a glass card with a ring that fills up to a percentage while the number counts up')
+def fx_percent_ring(c, e):
+    q = ease_out(c.lt / 0.4); al = fade(c, e) * clamp(c.lt / 0.12)
+    if al <= 0: return
+    W = c.W; cw, ch = int(W * 0.44), int(W * 0.33); sc = 0.9 + 0.1 * q  # a small low card, so it starts under your chin
+    cx = W / 2; cy = min(c.H - ch * 0.53, c.fy + c.fw * 2.7) + (1 - q) * W * 0.08
+    gw, gh = int(cw * sc), int(ch * sc)
+    im = glass(c, gw, gh, gh * 0.14, cx, cy, amt=0.16, blur=max(10, W // 30), dark=0.35)
+    val, suf, dp = num_parts(e.o.get('value', '40%'))
+    g = ease_out((c.lt - 0.2) / max(0.5, min(1.2, e.d * 0.6)))
+    col = rgb(e.o.get('color'), (255, 160, 122))
+    dn = donut(gh * 0.9, (val / 100 if suf == '%' else val / float(e.o.get('of', 100))) * g, col, e.o.get('text', ''), f'{val * g:.{dp}f}{suf}')
+    im.alpha_composite(dn, (int((gw - dn.width) / 2), int((gh - dn.height) / 2)))
+    place(c, shadowed(im, max(10, W // 70), W // 90, 90), cx, cy, alpha=al, guard=0.5)
 
 
 @effect('carousel-spin', 'your reels spin around you in a 3D carousel, then slow to a stop')
