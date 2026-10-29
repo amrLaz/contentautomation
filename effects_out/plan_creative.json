@@ -1,0 +1,6 @@
+{"effects":[
+ {"fx":"backdrop-word","start":0.0,"end":1.4,"text":"HELLO"},
+ {"fx":"lean-in","start":1.4,"end":2.3,"zoom":1.4},
+ {"fx":"glitter-spotlight","start":2.3,"end":4.04,"text":"LOOK"},
+ {"fx":"captions","start":0,"end":4.04,"y":0.82}
+]}
