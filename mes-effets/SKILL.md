@@ -1,9 +1,9 @@
 ---
 name: mes-effets
-description: Add any of 45 video effects to a talking-head video (orbit, spotlight, glass widgets, timeline, checklist, headline wall, comment box, phone fan, liquid glass graph, match-cut, iPhone toggles, LED sign, over-the-shoulder zoom, iMessage pop-ups, place-in-grid and more). Effects track the speaker's face and can sit behind their head. Use when the user types /effects, names one of the effects, or asks to add an effect, zoom, grade, sticker or animation to their video.
+description: Add video effects to a talking-head video, and turn the numbers said in it into animated graphs. 48 effects (orbit, spotlight, glass widgets, timeline, LED sign, backdrop word, zoom, stamp...), word-by-word captions, and automatic stats: bars, percent ring and climbing graph appear when a number is said (fx.py --auto-stats). Effects track the speaker's face and can sit behind their head. Use when the user types /mes-effets, names one of the effects, asks for captions or subtitles, wants graphs or charts from what they say, or asks to add an effect, zoom, grade, sticker or animation to their video.
 ---
 
-# Mes effets: 45 video effects + combos (based on the MIT-licensed "effects" skill by Vibha Ramprakash)
+# Mes effets: 48 video effects + captions + automatic stats (based on the MIT-licensed "effects" skill by Vibha Ramprakash)
 
 The user is usually not technical. Keep replies short and friendly, do the work for them, and never ask them to run commands themselves.
 
