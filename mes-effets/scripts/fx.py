@@ -33,7 +33,7 @@ ALIASES = {'the-noise': 'noise', 'the-lineup': 'lineup', 'bill': 'the-bill', 'to
            'liquid-glass': 'liquid-glass-graph', 'glass-graph': 'liquid-glass-graph', 'carousel': 'carousel-spin', 'match': 'match-cut',
            'toggles': 'apple-toggles', 'led': 'led-sign', 'push': 'slow-push', 'push-in': 'slow-push',
            'ots': 'over-the-shoulder-zoom', 'shoulder-zoom': 'over-the-shoulder-zoom', 'corner-zoom': 'over-the-shoulder-zoom',
-           'imessage': 'messages', 'texts': 'messages', 'notifications': 'messages', 'grid': 'place-in-grid', 'profile-grid': 'place-in-grid'}
+           'subtitles': 'captions', 'caption': 'captions', 'sous-titres': 'captions', 'imessage': 'messages', 'texts': 'messages', 'notifications': 'messages', 'grid': 'place-in-grid', 'profile-grid': 'place-in-grid'}
 LOOK_NAMES = {'glitter-spotlight': ('spotlight', 'sparkle'), 'glitter': ('spotlight', 'sparkle')}  # a named look of another effect
 CARD_FX = ('noise', 'orbit', 'carousel-spin', 'place-in-grid', 'check-pills', 'profile-wall', 'phone-fan', 'broll-split', 'timeline')
 
@@ -307,6 +307,46 @@ def fx_backdrop_word(c, e):
     y_end = max(c.fy - c.fw * 1.05, im.height / 2 + c.H * 0.03)  # keep the whole word inside the frame, even when the head is low
     y = -im.height + (y_end + im.height) * k
     place(c, im, c.W / 2 * 0.6 + c.fx * 0.4, y, alpha=clamp((e.d - c.lt) / 0.2), behind=True)
+
+
+@effect('captions', 'word-by-word subtitles at the bottom: the word being said lights up')
+def fx_captions(c, e):
+    words = cached(e, 'words', lambda: json.load(open(e.o['words'])) if e.o.get('words') and os.path.exists(e.o['words']) else [])
+    if not words: return
+    maxw = int(e.o.get('max_words', 4))
+
+    def make_lines():
+        lines, cur = [], []
+        for w in words:
+            if cur and (len(cur) >= maxw or w['s'] - cur[-1]['e'] > 0.7 or len(' '.join(x['w'] for x in cur + [w])) > 26): lines.append(cur); cur = []
+            cur.append(w)
+        if cur: lines.append(cur)
+        return lines
+    lines = cached(e, 'lines', make_lines)
+    t = c.t
+    li = next((i for i, ln in enumerate(lines) if ln[0]['s'] - 0.05 <= t < (lines[i + 1][0]['s'] - 0.05 if i + 1 < len(lines) else ln[-1]['e'] + 0.5)), None)
+    if li is None: return
+    ln = lines[li]; ai = max((i for i, w in enumerate(ln) if w['s'] <= t), default=-1)
+    hl, base = rgb(e.o.get('color'), YELLOW), (255, 255, 255)
+    size = c.W * 0.075
+
+    def build():
+        f = font('bold', size); sw = max(2, int(size * 0.06)); gap = size * 0.28; pad = int(size * 0.5)
+        xs, x = [], 0.0
+        for w in ln: xs.append(x); x += f.getlength(w['w']) + gap
+        tw, asc, desc = int(x - gap), int(size * 1.0), int(size * 0.35)
+        im = Image.new('RGBA', (tw + 2 * pad, asc + desc + 2 * pad), (0, 0, 0, 0))
+        sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); ds, d = ImageDraw.Draw(sh), ImageDraw.Draw(im)
+        for i, w in enumerate(ln):  # every word shares one baseline, so letters with tails do not shift
+            pos = (pad + xs[i], pad + asc)
+            ds.text((pos[0], pos[1] + 3), w['w'], font=f, fill=(0, 0, 0, 170), anchor='ls', stroke_width=sw)
+            d.text(pos, w['w'], font=f, fill=(hl if i == ai else base) + (255,), anchor='ls', stroke_width=sw, stroke_fill=INK + (255,))
+        im = Image.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)), im)
+        if im.width > c.W * 0.95: im = im.resize((int(c.W * 0.95), int(im.height * c.W * 0.95 / im.width)), Image.LANCZOS)
+        return im
+    im = cached(e, ('line', li, ai), build)
+    al = clamp((t - (ln[0]['s'] - 0.05)) / 0.12) * clamp((e.end - t) / 0.15)
+    comp(c, im, c.W / 2 - im.width / 2, c.H * float(e.o.get('y', 0.72)) - im.height / 2, al)
 
 
 _grid = {}
@@ -2239,6 +2279,12 @@ def main():
         if d['fx'] in LOOK_NAMES: d['fx'], look = LOOK_NAMES[d['fx']]; d.setdefault('look', look)
         if d['fx'] not in EFFECTS: sys.exit(f"Unknown effect '{d['fx']}'. Run --list to see all {len(EFFECTS)}.")
     resolve_overlaps(plan, not a.no_auto_fix)
+    for d in plan:
+        if d['fx'] == 'captions' and not d.get('words'):
+            d['words'] = os.path.splitext(src)[0] + '.words.json'
+            if not os.path.exists(d['words']):
+                print('Transcribing your voice for the captions...', flush=True)
+                subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'words.py'), src], check=True, stdout=subprocess.DEVNULL)
     fr, fps, dur, sw, sh = probe(src)
     if min(sw, sh) < 720: print(f'Warning: the video is only {sw}x{sh}, so the output will look soft. A 1080p source looks much better.', flush=True)
     for d in plan: d['end'] = min(float(d['end']), dur)

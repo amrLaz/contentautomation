@@ -96,6 +96,11 @@ A single effect needs no plan: `.venv/bin/python scripts/fx.py orbit <video> <ou
 
 Aliases work too: `bill`, `to-do`, `follow`, `stamp`, `countdown`, `cover`, `rain`, `pause`.
 
+## Captions (effect 46)
+`captions` writes what the person says at the bottom of the frame, word by word, the word being said lit in yellow. It needs no text: it transcribes the video by itself the first time (this saves `<video>.words.json` next to the video, with each word and its time). Options: `color` (hex, highlight), `y` (0 to 1, default 0.72), `max_words` (per line, default 4). Aliases: `captions`, `subtitles`, `caption`.
+The transcription makes mistakes. Before the final render, read `<video>.words.json` back to the user, fix any wrong word in its `w` fields, then render.
+Example: `{"fx": "captions", "start": 0, "end": 4}`
+
 ## Combos
 One name that plays several effects one after the other inside the time window you give (it needs a `start` and an `end`):
 - `intro`: `timeline` for the first half, then `backdrop-word` for the second half (pass `text` for the word).
