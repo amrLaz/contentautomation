@@ -2295,6 +2295,15 @@ def reframe(path, fmt, long_side):
     os.replace(tmp, path)
 
 
+def ensure_words(src):
+    """The transcript next to the video (<video>.words.json); made with words.py the first time."""
+    path = os.path.splitext(src)[0] + '.words.json'
+    if not os.path.exists(path):
+        print('Transcribing your voice...', flush=True)
+        subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'words.py'), src], check=True, stdout=subprocess.DEVNULL)
+    return path
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('args', nargs='*', help='[effect] input.mp4 output.mp4')
@@ -2304,12 +2313,16 @@ def main():
     ap.add_argument('--width', type=int, default=1080, help='short side of the output (1080 default, 2160 for 4K)')
     ap.add_argument('--no-auto-fix', action='store_true', help='only warn when two titles overlap, keep the timing as written')
     ap.add_argument('--format', choices=['9:16', '1:1', '16:9'], help='fit the finished video into this shape over a blurred background (video output only)')
+    ap.add_argument('--auto-stats', action='store_true', help='find the numbers you say and add animated graphs for them (bars, ring, climbing graph)')
+    ap.add_argument('--keep-inconsistent', action='store_true', help='with --auto-stats: draw a percentage even when it contradicts the figures said before it')
     ap.add_argument('--list', action='store_true')
     a = ap.parse_args()
     if a.list:
         for i, (k, (_, d)) in enumerate(EFFECTS.items()): print(f'{i + 1:2d}. {k:15s} {d}')
         return
-    if a.plan:
+    if a.auto_stats and not a.plan and len(a.args) == 2:
+        src, dst = a.args; plan = []
+    elif a.plan:
         src, dst = a.args[0], a.args[1]; plan = json.load(open(a.plan))
         plan = plan.get('effects', plan) if isinstance(plan, dict) else plan
     else:
@@ -2319,6 +2332,12 @@ def main():
         if a.images: d['images'] = a.images
         for kv in a.opt: k, v = kv.split('=', 1); d[k] = v
         plan = [d]
+    if a.auto_stats:
+        from autostats import detect
+        found, notes = detect(json.load(open(ensure_words(src))), keep_inconsistent=a.keep_inconsistent)
+        print('Stats found in your speech:' if notes else 'No numbers found in your speech.', flush=True)
+        for n in notes: print('  -', n, flush=True)
+        plan = list(plan) + found
     plan = expand_combos(plan)
     for d in plan:
         d['fx'] = ALIASES.get(d['fx'].lower().lstrip('/'), d['fx'].lower().lstrip('/'))
@@ -2327,10 +2346,7 @@ def main():
     resolve_overlaps(plan, not a.no_auto_fix)
     for d in plan:
         if d['fx'] == 'captions' and not d.get('words'):
-            d['words'] = os.path.splitext(src)[0] + '.words.json'
-            if not os.path.exists(d['words']):
-                print('Transcribing your voice for the captions...', flush=True)
-                subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'words.py'), src], check=True, stdout=subprocess.DEVNULL)
+            d['words'] = ensure_words(src)
     fr, fps, dur, sw, sh = probe(src)
     if min(sw, sh) < 720: print(f'Warning: the video is only {sw}x{sh}, so the output will look soft. A 1080p source looks much better.', flush=True)
     for d in plan: d['end'] = min(float(d['end']), dur)

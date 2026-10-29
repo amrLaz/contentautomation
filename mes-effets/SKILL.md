@@ -96,19 +96,18 @@ A single effect needs no plan: `.venv/bin/python scripts/fx.py orbit <video> <ou
 
 Aliases work too: `bill`, `to-do`, `follow`, `stamp`, `countdown`, `cover`, `rain`, `pause`.
 
-## Stats from speech
-When the person talks about numbers, turn them into animated graphs:
-1. Run `words.py` and read the transcript. Whisper may split a number over several words (`50`, `,000`) or write it in letters; put it back together.
-2. Find each stat: the number(s), what it is about, and when it is said (the first word of it to the last, plus about a second).
-3. Pick the graph: a number that grows from A to B or a percentage -> `liquid-glass-graph` (`text` = the label, `from`, `to`, e.g. `50K` to `100K`); two numbers to compare -> `over-the-shoulder-zoom`; a few figures at once -> `liquid-glass-graph` with `look=bento`.
-4. Never invent a start value. If the person gives only the end ("100% growth"), ask what to use or count up from 0.
-5. Show the plan in plain words before rendering ("I found 2 stats: 50K to 100K followers at 3.4 s, 100% growth at 9.4 s. Right?"), because a wrong number on screen is worse than none.
-Keep a gap between two graphs so they do not overlap.
-
-## Bar chart (effect 47)
-`bar-chart` is a glass card under the chin with labelled bars. Each bar grows, and its number counts up, at the moment it is said. Option `bars` = `Label:value@seconds|Label:value@seconds` (seconds = when the bar appears in the video), `text` (small title, keep it short), `color`. Use it for 2 to 4 values said one after the other ("2,000 Jews, 1,000 Muslims, 4,000 Christians"). Alias: `bars`, `chart`.
-Example: `{"fx": "bar-chart", "start": 1.2, "end": 11.5, "text": "In my city", "bars": "Jews:2000@1.4|Muslims:1000@4.9|Christians:4000@8.7"}`
-Check that the numbers add up before drawing them. If a spoken percentage does not match the spoken figures, do not draw it: tell the person and ask which one is right.
+## Stats from speech (automatic)
+When the person says numbers, stats or percentages, turn them into animated graphs with ONE command:
+`.venv/bin/python scripts/fx.py --auto-stats <video> <out.mp4>`
+It transcribes the voice (first time only), finds the numbers (digits, "2,000", "1.5 million" or in words: "two hundred hours"), picks the graph and times it to the moment each number is said:
+- "from 50,000 to 100,000 followers" -> `liquid-glass-graph` (climbing graph, the number counts up)
+- several labelled figures one after another ("2,000 Jews, 1,000 Muslims, 4,000 Christians") -> `bar-chart` (a bar per figure, each when it is said)
+- a percentage ("40%", "fifty percent") -> `percent-ring`
+- one figure alone with nothing to compare -> no graph (it says so)
+It prints what it found as "Stats found in your speech:". Read that list to the person in plain words.
+A percentage that contradicts the figures said just before it (40% for 1,000 out of 7,000) is not drawn: the list shows a `WARNING`. Tell the person, ask which number is right, and never pick one yourself. If they insist on showing it as said, add `--keep-inconsistent`.
+You can mix it with a plan: `--auto-stats --plan plan.json <video> <out.mp4>` adds the graphs to the plan's effects. To check frames first, write the plan from the printed list and use `--still`. To fix a mis-heard number, edit `<video>.words.json` (the `w` fields) and run again.
+The graph cards all sit under the chin, so two never show together: the earlier one is cut short. Needs a clear voice; the transcription can mishear numbers, so always show the list before the person posts.
 
 ## Percent ring (effect 48)
 `percent-ring` is a small glass card under the chin with a ring that fills up while the number counts up. Options: `value` (e.g. `40%`; or a plain number with `of` = the total it is out of), `text` (label under the number), `color`. Use it when a single percentage is said. Aliases: `ring`, `donut`, `percent`.
