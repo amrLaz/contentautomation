@@ -68,26 +68,6 @@ def front(box, direction):  # the most advanced x of a box, in the attacking dir
     return box[0] if direction == 'left' else box[2]
 
 
-def verdict(players, direction, line_angle):
-    """Compare every attacker with the second-last defender's front-most point. Returns the data to draw."""
-    sign = -1 if direction == 'left' else 1
-    defs = [p for p in players if p['team'] == 'defence']; atts = [p for p in players if p['team'] == 'attack']
-    if not defs or not atts: return None
-    defs.sort(key=lambda p: -sign * front(p['box'], direction))  # most advanced first
-    last = defs[0]  # the front-most visible defender: second-last when the keeper is out of frame
-    ly = last['box'][3]; lx = front(last['box'], direction)
-    out = []
-    for a in atts:
-        ax = front(a['box'], direction)
-        # carry the line to the attacker's depth with its angle (0 = vertical on screen)
-        line_x_at_a = lx + math.tan(math.radians(line_angle)) * (a['box'][3] - ly)
-        gap_px = sign * (ax - line_x_at_a)  # > 0: the attacker is beyond the line
-        hm = 0.5 * (a['h'] + last['h'])
-        out.append({'att': a, 'gap_px': gap_px, 'gap_m': gap_px / hm * 1.8})
-    out.sort(key=lambda o: -o['gap_px'])
-    return {'last': last, 'line_x': lx, 'line_y': ly, 'rows': out}
-
-
 def tag(d, xy, text, fill, size=24, bold=True):
     """A label on a dark rounded background, readable on any picture."""
     f = font(size, bold); l, t, r, b = d.textbbox(xy, text, font=f)
@@ -104,27 +84,74 @@ def pick_ball(balls, players, max_px=90):
     return best[1] if best else None
 
 
-def draw(im, res, args, ball, banner=True):
+def line_x(P, vp, y):
+    """x of the line through P and the vanishing point vp (the lines perpendicular to the touchlines) at height y."""
+    if vp is None: return P[0]
+    return P[0] + (vp[0] - P[0]) / (vp[1] - P[1]) * (y - P[1])
+
+
+def verdict(players, direction, vp, ref_err=8.0, det_err=8.0, vp_err=(60.0, 90.0)):
+    """Compare every attacker with the second-last defender's front-most point, along the line through that point and the vanishing point.
+    The gap is measured at the attacker's own depth, in pixels and in metres (the players' height, 1.80 m, gives the scale there)."""
+    sign = -1 if direction == 'left' else 1
+    defs = [p for p in players if p['team'] == 'defence']; atts = [p for p in players if p['team'] == 'attack']
+    if not defs or not atts: return None
+    defs.sort(key=lambda p: -sign * front(p['box'], direction))
+    last = defs[0]; P = (front(last['box'], direction), last['box'][3]); out = []
+    for a in atts:
+        ax, ay = front(a['box'], direction), a['box'][3]; gap = sign * (ax - line_x(P, vp, ay))
+        slope = abs((vp[0] - P[0]) / (vp[1] - P[1])) if vp else 0.0
+        vp_shift = 0.0
+        if vp:  # how far the line moves at the attacker's depth if the vanishing point is off by vp_err
+            for dx, dy in ((vp_err[0], 0), (-vp_err[0], 0), (0, vp_err[1]), (0, -vp_err[1])):
+                vp_shift = max(vp_shift, abs(line_x(P, (vp[0] + dx, vp[1] + dy), ay) - line_x(P, vp, ay)))
+        sigma = math.sqrt((ref_err * (1 + slope)) ** 2 + det_err ** 2 + vp_shift ** 2)  # px
+        hm = 0.5 * (a['h'] + last['h']); out.append({'att': a, 'gap_px': gap, 'gap_m': gap / hm * 1.8, 'sigma_px': sigma, 'sigma_m': sigma / hm * 1.8})
+    out.sort(key=lambda o: -o['gap_px'])
+    return {'last': last, 'P': P, 'vp': vp, 'rows': out}
+
+
+def status(row):
+    """'off' beyond the line by more than the uncertainty, 'on' behind it by more, else 'close'."""
+    if row['gap_px'] > row['sigma_px']: return 'off'
+    if row['gap_px'] < -row['sigma_px']: return 'on'
+    return 'close'
+
+
+def draw(im, res, args, ball, cal=None, banner=True):
     W, H = im.shape[1], im.shape[0]
     pil = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)).convert('RGBA'); ov = Image.new('RGBA', pil.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
-    last = res['last']; best = res['rows'][0]; a = best['att']; off = best['gap_px'] > 0
-    col = (255, 59, 48, 255) if off else (52, 211, 110, 255)
-    # the offside line, through the front-most point of the second-last defender
-    x0 = res['line_x'] - math.tan(math.radians(args.line_angle)) * (res['line_y'] - args.top)
-    x1 = res['line_x'] + math.tan(math.radians(args.line_angle)) * (args.bottom - res['line_y'])
-    d.line([(x0, args.top), (x1, args.bottom)], fill=(255, 255, 255, 90), width=14)
-    d.line([(x0, args.top), (x1, args.bottom)], fill=(255, 255, 255, 255), width=4)
+    last = res['last']; best = res['rows'][0]; a = best['att']; st = status(best); P = res['P']; vp = res['vp']
+    col = {'off': (255, 59, 48, 255), 'on': (52, 211, 110, 255), 'close': (255, 159, 10, 255)}[st]
+    # the offside line: from the far touchline to the edge of the picture, through P and the vanishing point
+    ta, tb = cal['touch'] if cal else (0.0, args.top)
+    def xs_at(y): return line_x(P, vp, y)
+    y_far = tb + ta * P[0]
+    for _ in range(3): y_far = ta * xs_at(y_far) + tb  # the line meets the touchline where both agree
+    y_end = H
+    if vp and abs(xs_at(H) - P[0]) > 1e-6:
+        edge = W - 1 if xs_at(H) > W - 1 else (0 if xs_at(H) < 0 else None)
+        if edge is not None: y_end = P[1] + (edge - P[0]) / ((vp[0] - P[0]) / (vp[1] - P[1]))
+    sg = best['sigma_px']
+    d.polygon([(xs_at(y_far) - sg, y_far), (xs_at(y_far) + sg, y_far), (xs_at(y_end) + sg, y_end), (xs_at(y_end) - sg, y_end)], fill=col[:3] + (45,))  # uncertainty band
+    d.line([(xs_at(y_far), y_far), (xs_at(y_end), y_end)], fill=(255, 255, 255, 90), width=14)
+    d.line([(xs_at(y_far), y_far), (xs_at(y_end), y_end)], fill=(255, 255, 255, 255), width=4)
+    d.line([(0, tb), (W, ta * W + tb)], fill=(90, 200, 255, 200), width=3)  # the far touchline
+    if cal:  # the pitch lines the perspective comes from, where they are visible
+        for l in cal['lines_used']:
+            d.line([tuple(l['p0']), tuple(l['p1'])], fill=(90, 200, 255, 230), width=3)
+        tag(d, (W - 560, 40), 'ligne médiane : sert à la perspective', (90, 200, 255, 255), 20, False)
     for p, c, lab in ((last, (255, 255, 255, 255), '2e dernier défenseur'), (a, col, 'attaquant le plus avancé')):
         b = p['box']; d.rectangle(b, outline=c, width=3); tag(d, (b[0], b[1] - 40), lab, c, 22)
-    # marker and distance on the attacker's front-most point
-    ax = front(a['box'], args.attack); ay = a['box'][3] + 14
-    d.line([(res['line_x'] + math.tan(math.radians(args.line_angle)) * (ay - res['line_y']), ay), (ax, ay)], fill=col, width=5)
-    tag(d, (min(ax, res['line_x']) + 10, ay + 10), f"{abs(best['gap_m']):.1f} m {'devant' if off else 'derrière la ligne'}", col, 28)
+    ax, ay = front(a['box'], args.attack), a['box'][3] + 14; lx = xs_at(a['box'][3])
+    d.line([(lx, ay), (ax, ay)], fill=col, width=5)
+    word = {'off': 'devant la ligne', 'on': 'derrière la ligne', 'close': 'de la ligne'}[st]
+    tag(d, (min(ax, lx) + 10, ay + 10), f"{abs(best['gap_m']):.1f} m {word}  (± {best['sigma_m']:.1f} m)", col, 26)
     if ball is not None:
         bx, by = (ball['box'][0] + ball['box'][2]) / 2, (ball['box'][1] + ball['box'][3]) / 2
         d.ellipse([bx - 16, by - 16, bx + 16, by + 16], outline=(255, 214, 10, 255), width=3)
     if banner:
-        txt = 'POSITION DE HORS-JEU' if off else 'EN JEU'
+        txt = {'off': 'POSITION DE HORS-JEU', 'on': 'EN JEU', 'close': 'TROP JUSTE POUR TRANCHER'}[st]
         tag(d, (50, 40), txt, col, 44)
         tag(d, (50, 112), "Estimation indicative, une seule caméra : pas une décision officielle.", (255, 255, 255, 240), 22, False)
     return cv2.cvtColor(np.array(Image.alpha_composite(pil, ov).convert('RGB')), cv2.COLOR_RGB2BGR)
@@ -137,19 +164,25 @@ def main():
     ap.add_argument('--crop', default='1920:1080:0:180', help='w:h:x:y of the match picture inside the recording')
     ap.add_argument('--red-hue', type=float, nargs=2, default=[0, 30]); ap.add_argument('--green-hue', type=float, nargs=2, default=[34, 95])
     ap.add_argument('--min-colour', type=float, default=0.35, help='min share of coloured torso pixels, below it the person is an official')
-    ap.add_argument('--line-angle', type=float, default=0.0, help='goal-line direction on screen, 0 = vertical')
+    ap.add_argument('--vp', type=float, nargs=2, help='vanishing point of the lines perpendicular to the touchlines, x y in the picture (else found from the pitch lines)')
+    ap.add_argument('--aux-times', type=float, nargs='*', help='other moments of the clip that show pitch lines (default: pass time + 0.45 ... 1.25 s)')
     ap.add_argument('--top', type=int, default=190); ap.add_argument('--bottom', type=int, default=720)
     ap.add_argument('--hold', type=float, default=3.0, help='seconds of freeze frame'); ap.add_argument('--model', default=os.path.join(ROOT, 'models', 'yolox.onnx'))
     ap.add_argument('--json', help='also write the measurements here')
     a = ap.parse_args()
-    det = Detector(a.model); im = grab(a.video, a.pass_time, a.crop)
-    players, balls = analyse(im, a, det); res = verdict(players, a.attack, a.line_angle)
+    det = Detector(a.model); im = grab(a.video, a.pass_time, a.crop); cal = None
+    from calibrate import calibrate
+    cal = calibrate(a.video, a.pass_time, a.crop, a.aux_times, top=a.top + 25)
+    vp = tuple(a.vp) if a.vp else cal['vp']
+    if vp: print(f"perspective: lines perpendicular to the touchlines meet at ({vp[0]:.0f}, {vp[1]:.0f}); from", [f"{l['angle']:.0f} deg line of {l['len']:.0f}px" for l in cal['lines_used']])
+    else: print('WARNING: not enough pitch lines to find the perspective; the line is drawn vertical, which is only right near the middle of the picture.')
+    players, balls = analyse(im, a, det); res = verdict(players, a.attack, vp)
     if not res: sys.exit('Could not find both attackers and defenders on that frame.')
     print('players:', [(p['team'], round(p['box'][0]), round(p['hue'])) for p in sorted(players, key=lambda p: p['box'][0])])
-    for o in res['rows']: print(f"attacker at x={front(o['att']['box'], a.attack):.0f}: {o['gap_px']:+.0f}px = {o['gap_m']:+.1f} m ({'beyond the line' if o['gap_px'] > 0 else 'behind the line'})")
-    frame = draw(im, res, a, pick_ball(balls, players))
+    for o in res['rows']: print(f"attacker at x={front(o['att']['box'], a.attack):.0f}: {o['gap_px']:+.0f}px = {o['gap_m']:+.2f} m (+- {o['sigma_m']:.2f} m) -> {status(o)}")
+    frame = draw(im, res, a, pick_ball(balls, players), cal)
     png = os.path.splitext(a.out)[0] + '.png'; cv2.imwrite(png, frame); print('saved', png)
-    if a.json: json.dump({'pass_time': a.pass_time, 'attack': a.attack, 'rows': [{'gap_px': float(o['gap_px']), 'gap_m': float(o['gap_m'])} for o in res['rows']]}, open(a.json, 'w'), indent=1)
+    if a.json: json.dump({'pass_time': a.pass_time, 'attack': a.attack, 'vp': vp, 'rows': [{'gap_px': float(o['gap_px']), 'gap_m': float(o['gap_m']), 'sigma_m': float(o['sigma_m']), 'status': status(o)} for o in res['rows']]}, open(a.json, 'w'), indent=1)
     # the video: the clip up to the pass, the freeze frame with the line, then the rest of the clip
     w, h = frame.shape[1], frame.shape[0]; fps = 30
     enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{w}x{h}', '-r', str(fps), '-i', '-', '-c:v', 'libx264', '-crf', '18',
