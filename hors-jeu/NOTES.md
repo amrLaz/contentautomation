@@ -23,16 +23,31 @@ freeze frame at the pass and says whether the most advanced attacker is beyond i
 - Uncertainty (pixels): reference point height 8 px x line slope, detection 8 px, vanishing point +-(60, 90) px, summed in quadrature. If the gap is
   smaller than that the verdict is "too close to call".
 
-## First test (clip 2, 69:05, HUSA in red attacking left against RCA in green)
-- Ball leaves the red player on the right at about 0.83 s (detected at rest at (1111,269) until then; the clip is a 60 fps screen recording of a source
-  that repeats frames, so positions only change every 2-4 frames).
-- With a vertical line (my first version, wrong) the most advanced attacker was 1.5 m behind the line: "on side".
-  With the line perpendicular to the touchlines it is 0.3 m beyond it +- 0.6 m: TOO CLOSE TO CALL. The perspective changed the answer.
-- The linesman at the touchline was first mistaken for an attacker (orange flag); dropped by the colour-share rule.
+## Two modes
+1. `scripts/offside.py` (vanishing point): needs two pitch lines parallel to the goal line; quick, rougher (+-0.6 m).
+2. `scripts/offside_pitch.py` (metric pitch model): uses every marking visible in the clip. The best one.
+
+### Pitch model (scripts/pitch_fit.py)
+A homography from pitch metres (u along the pitch from the attacked goal line, v across from the far touchline) to the picture of the pass frame, fitted by robust least
+squares on: the penalty-area front line (u=16.5), its near side line (v=54.16), the penalty arc, the halfway line (u=52.5), the centre circle, the foot of the boards
+(a free offset, found to be 3 m outside the touchline), plus one radial lens term (k1=-0.012, almost nothing). Markings seen only in other frames are carried onto the pass
+frame by the pan and zoom (ORB on the stands, similarity transform, the static logo ignored). The markings to use are listed per clip in `examples/clip2_pitch.json`
+(regions to search + a first guess of a few pitch points); finding them automatically is not done.
+Fit quality on the test clip: median error 8-16 cm per marking, and the model predicts the penalty-area corner within 10 px of where it was measured.
+Independent check: the linesman, standing on the touchline, comes out at u=35.3 m and the second-last defender at 35.7 m, as the law asks of an assistant referee.
+Sensitivity of the gap: dropping any marking except the penalty front line changes it by < 2 cm; carrying the other frames wrongly by 20 px changes it by < 4 cm;
+the bootstrap over the marking pixels gives 0.3 cm. What dominates is where the two body parts are placed: +-2.5 px x, +-4 px y after zooming on them gives +-17 cm
+(+-32 cm with the detector boxes alone, which also take in the arms).
+
+### Test clip (69:05, HUSA in red attacking left against RCA in green), ball played at about 0.80-0.87 s
+- Placement of the front-most legal body parts at ground level, after zooming (`--crops`): defender's boot (932,306); attacker's head/torso (1002,350), not his outstretched arm.
+- Last source frame before the ball has moved (0.83 s): defender u = 35.68 m, attacker u = 35.66 m -> attacker +2 cm +- 17 cm (level).
+- Next source frame, ball gone (0.87 s, carried onto the pass frame, camera had moved 11 px): attacker +35 cm +- 16 cm (ahead).
+- The contact happened between the two source frames (the clip is a 60 fps screen recording of a source that changes every 3-4 frames), so the attacker was level to 35 cm ahead:
+  TOO CLOSE TO CALL, leaning towards offside. The two earlier versions were wrong: a vertical line gave 1.5 m behind (onside), the vanishing-point line 0.3 +- 0.6 m.
 
 ## Limits and what is missing
-- Perspective: needs at least two different pitch lines parallel to the goal line somewhere in the clip; without them the line falls back to vertical and a warning is printed.
-  Lens distortion is ignored (the far touchline bends by about 1 degree across the picture).
+- Pitch model: needs several markings (at least one long line parallel to the goal line plus another one or an arc and a circle); the landmark regions are drawn by hand per clip.
 - The pass frame is given by hand (`--pass-time`). Detecting it from the ball trajectory is not done.
 - The keeper is assumed to be the last defender and out of frame; the verdict is wrong if another defender is out of frame.
 - Body parts: the box edge stands for the front-most body part; arms are not excluded.
